@@ -3,6 +3,7 @@ import sys, os, os.path
 import numpy as np
 import json
 from sklearn.metrics import roc_auc_score
+import ast
 
 def dcg_score(y_true, y_score, k=10):
     order = np.argsort(y_score)[::-1]
@@ -26,7 +27,7 @@ def mrr_score(y_true, y_score):
 
 def parse_line(l):
     impid, ranks = l.strip('\n').split()
-    ranks = json.loads(ranks)
+    #ranks = json.loads(ranks)
     return impid, ranks
 
 def scoring(truth_f, sub_f):
@@ -39,7 +40,7 @@ def scoring(truth_f, sub_f):
     for lt in truth_f:
         ls = sub_f.readline()
         impid, labels = parse_line(lt)
-        
+        labels = ast.literal_eval(labels)
         # ignore masked impressions
         if labels == []:
             continue 
@@ -51,6 +52,7 @@ def scoring(truth_f, sub_f):
         else:
             try:
                 sub_impid, sub_ranks = parse_line(ls)
+                sub_ranks = ast.literal_eval(sub_ranks)
             except:
                 raise ValueError("line-{}: Invalid Input Format!".format(line_index))       
         
@@ -62,7 +64,6 @@ def scoring(truth_f, sub_f):
             ))        
         
         lt_len = float(len(labels))
-        
         y_true =  np.array(labels,dtype='float32')
         y_score = []
         for rank in sub_ranks:
@@ -85,6 +86,8 @@ def scoring(truth_f, sub_f):
         ndcg10s.append(ndcg10)
         
         line_index += 1
+        if line_index % 10000 == 0:
+            print(line_index)
 
     return np.mean(aucs), np.mean(mrrs), np.mean(ndcg5s), np.mean(ndcg10s)
         

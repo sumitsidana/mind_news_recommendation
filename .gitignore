@@ -1,0 +1,10 @@
+model.out
+prediction.txt.zip
+ref/
+res/
+scores.txt
+train.ffm
+train.ffm.bin
+val.ffm
+val.ffm.bin
+val.out
